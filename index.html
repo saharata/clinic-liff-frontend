@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>แบบฟอร์มติดตามอาการ</title>
+
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f8fa;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+
+    .container {
+      max-width: 560px;
+      margin: 24px auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .sub {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .profile-box {
+      background: #f2f7ff;
+      border: 1px solid #dce8ff;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 18px;
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    input, select, textarea, button {
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 16px;
+      border-radius: 10px;
+    }
+
+    input, select, textarea {
+      border: 1px solid #ccc;
+      padding: 12px;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 20px;
+      border: none;
+      padding: 14px;
+      background: #06c755;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #9fd8b5;
+      cursor: not-allowed;
+    }
+
+    .msg {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .success {
+      background: #ecfff3;
+      color: #0b7a39;
+      border: 1px solid #b9efca;
+    }
+
+    .error {
+      background: #fff1f1;
+      color: #b42318;
+      border: 1px solid #f1b5b5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>แบบฟอร์มติดตามอาการ</h1>
+    <div class="sub">กรอกข้อมูลก่อนพบแพทย์หรือเพื่อติดตามอาการ</div>
+
+    <div class="profile-box" id="profileBox">
+      กำลังเชื่อมต่อ LINE...
+    </div>
+
+    <form id="patientForm">
+      <label for="fullName">ชื่อ-สกุล</label>
+      <input type="text" id="fullName" name="fullName" placeholder="เช่น สมชาย ใจดี" required />
+
+      <label for="hn">HN</label>
+      <input type="text" id="hn" name="hn" placeholder="เช่น 123456" />
+
+      <label for="phone">เบอร์โทรศัพท์</label>
+      <input type="text" id="phone" name="phone" placeholder="เช่น 0812345678" />
+
+      <label for="weight">น้ำหนัก (กก.)</label>
+      <input type="number" id="weight" name="weight" step="0.1" placeholder="เช่น 62.5" />
+
+      <label for="systolic">ความดันตัวบน (SYS)</label>
+      <input type="number" id="systolic" name="systolic" placeholder="เช่น 128" />
+
+      <label for="diastolic">ความดันตัวล่าง (DIA)</label>
+      <input type="number" id="diastolic" name="diastolic" placeholder="เช่น 78" />
+
+      <label for="migrainePain">ระดับปวดไมเกรน</label>
+      <select id="migrainePain" name="migrainePain">
+        <option value="">-- เลือก --</option>
+        <option value="1">1 ปวดน้อย</option>
+        <option value="2">2 ปวดปานกลาง</option>
+        <option value="3">3 ปวดมากจนต้องหยุดพัก</option>
+      </select>
+
+      <label for="symptoms">อาการวันนี้</label>
+      <textarea id="symptoms" name="symptoms" placeholder="เช่น ปวดศีรษะ เวียนศีรษะ นอนไม่หลับ"></textarea>
+
+      <button type="submit" id="submitBtn">ส่งข้อมูล</button>
+    </form>
+
+    <div id="successMsg" class="msg success"></div>
+    <div id="errorMsg" class="msg error"></div>
+  </div>
+
+  <script>
+    // ====== แก้ 2 ค่านี้ ======
+    const LIFF_ID = "2009751378-L6xJN3QE";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_zDLdh-XJ9Q5MWhF6nu9PySrqKFqs0rlNhZ4l6WBw2pyP2hPAytwYMDV2Qshr3K7E/exec";
+    // ==========================
+
+    let lineProfile = null;
+
+    async function initLiff() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        lineProfile = await liff.getProfile();
+
+        document.getElementById("profileBox").innerHTML = `
+          <strong>เชื่อมต่อสำเร็จ</strong><br>
+          ชื่อ LINE: ${lineProfile.displayName}<br>
+          userId: ${lineProfile.userId}
+        `;
+
+        // เติมชื่อให้อัตโนมัติถ้าช่องยังว่าง
+        const fullNameInput = document.getElementById("fullName");
+        if (!fullNameInput.value && lineProfile.displayName) {
+          fullNameInput.value = lineProfile.displayName;
+        }
+      } catch (err) {
+        document.getElementById("profileBox").innerHTML =
+          "เชื่อมต่อ LINE ไม่สำเร็จ แต่ยังกรอกฟอร์มได้";
+        console.error("LIFF init error:", err);
+      }
+    }
+
+    function showSuccess(message) {
+      const el = document.getElementById("successMsg");
+      el.style.display = "block";
+      el.textContent = message;
+      document.getElementById("errorMsg").style.display = "none";
+    }
+
+    function showError(message) {
+      const el = document.getElementById("errorMsg");
+      el.style.display = "block";
+      el.textContent = message;
+      document.getElementById("successMsg").style.display = "none";
+    }
+
+    document.getElementById("patientForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "กำลังส่งข้อมูล...";
+
+      const payload = {
+        timestamp: new Date().toISOString(),
+        lineUserId: lineProfile?.userId || "",
+        lineDisplayName: lineProfile?.displayName || "",
+        fullName: document.getElementById("fullName").value.trim(),
+        hn: document.getElementById("hn").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        weight: document.getElementById("weight").value.trim(),
+        systolic: document.getElementById("systolic").value.trim(),
+        diastolic: document.getElementById("diastolic").value.trim(),
+        migrainePain: document.getElementById("migrainePain").value,
+        symptoms: document.getElementById("symptoms").value.trim()
+      };
+
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const text = await response.text();
+
+        let result = {};
+        try {
+          result = JSON.parse(text);
+        } catch (_) {
+          result = { ok: false, raw: text };
+        }
+
+        if (result.ok) {
+          showSuccess("ส่งข้อมูลสำเร็จแล้ว");
+          document.getElementById("patientForm").reset();
+
+          if (lineProfile?.displayName) {
+            document.getElementById("fullName").value = lineProfile.displayName;
+          }
+        } else {
+          showError("ส่งข้อมูลไม่สำเร็จ: " + (result.error || "ไม่ทราบสาเหตุ"));
+        }
+      } catch (error) {
+        console.error(error);
+        showError("เชื่อมต่อระบบไม่สำเร็จ กรุณาตรวจสอบ Apps Script URL");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "ส่งข้อมูล";
+      }
+    });
+
+    initLiff();
+  </script>
+</body>
+</html>
