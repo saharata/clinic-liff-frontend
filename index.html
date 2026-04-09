@@ -156,7 +156,7 @@
   <script>
     // ====== แก้ 2 ค่านี้ ======
     const LIFF_ID = "2009751378-L6xJN3QE";
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzMRUGx5EOB5wZJWEqeWk3rl4xC-731rtN6hQeLRMpT6T6STyucJk2mPTU-wrHKjjI/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGsZVpRV2AZM0b8UUj_xRCB2qyuCaVm6GFEycSbWBbPEtDi48Y8TL5xZ6Z4QLx5-zh/exec";
     // ==========================
 
     let lineProfile = null;
@@ -227,12 +227,13 @@
 
       try {
         const response = await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-          },
-          body: JSON.stringify(payload)
-        });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(data),
+  mode: "no-cors"
+});
 
         const text = await response.text();
 
