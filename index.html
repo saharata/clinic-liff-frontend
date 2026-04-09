@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>แบบฟอร์มติดตามอาการ</title>
+  <title>แบบฟอร์มสุขภาพและวันนัด</title>
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
@@ -17,7 +17,7 @@
     }
 
     .container {
-      max-width: 560px;
+      max-width: 680px;
       margin: 24px auto;
       background: #fff;
       border-radius: 16px;
@@ -26,7 +26,13 @@
     }
 
     h1 {
-      font-size: 22px;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 28px;
       margin-bottom: 8px;
     }
 
@@ -36,14 +42,21 @@
       margin-bottom: 20px;
     }
 
-    .profile-box {
-      background: #f2f7ff;
+    .profile-box,
+    .consent-box,
+    .section-box {
+      background: #f8fbff;
       border: 1px solid #dce8ff;
       border-radius: 12px;
-      padding: 12px;
+      padding: 14px;
       margin-bottom: 18px;
       font-size: 14px;
       word-break: break-word;
+    }
+
+    .consent-box {
+      background: #fffdf3;
+      border: 1px solid #f0e2a8;
     }
 
     label {
@@ -71,6 +84,40 @@
       resize: vertical;
     }
 
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 18px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .radio-group label {
+      font-weight: normal;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .radio-group input[type="radio"],
+    .checkbox-inline input[type="checkbox"] {
+      width: auto;
+    }
+
+    .checkbox-inline {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
     button {
       margin-top: 20px;
       border: none;
@@ -79,6 +126,10 @@
       color: white;
       font-weight: bold;
       cursor: pointer;
+    }
+
+    button.secondary {
+      background: #9aa0a6;
     }
 
     button:disabled {
@@ -105,46 +156,209 @@
       color: #b42318;
       border: 1px solid #f1b5b5;
     }
+
+    .hidden {
+      display: none;
+    }
+
+    .small-note {
+      font-size: 13px;
+      color: #666;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 640px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>แบบฟอร์มติดตามอาการ</h1>
-    <div class="sub">กรอกข้อมูลก่อนพบแพทย์หรือเพื่อติดตามอาการ</div>
+    <h1>แบบฟอร์มสุขภาพและวันนัด</h1>
+    <div class="sub">สำหรับติดตามอาการ ข้อมูลสุขภาพ วันนัด และผลตรวจเบื้องต้น</div>
 
     <div class="profile-box" id="profileBox">
       กำลังเชื่อมต่อ LINE...
     </div>
 
-    <form id="patientForm">
-      <label for="fullName">ชื่อ-สกุล</label>
-      <input type="text" id="fullName" name="fullName" placeholder="เช่น สมชาย ใจดี" required />
+    <!-- หน้า/ส่วนยินยอม -->
+    <div id="consentSection" class="consent-box">
+      <h2>การยินยอมเก็บข้อมูลสุขภาพ</h2>
+      <div>
+        คลินิกจะใช้ข้อมูลนี้เพื่อประเมินอาการ ติดตามผลการรักษา นัดหมาย และการดูแลต่อเนื่องผ่านระบบของคลินิก
+      </div>
 
-      <label for="hn">HN</label>
-      <input type="text" id="hn" name="hn" placeholder="เช่น 123456" />
+      <div class="checkbox-inline">
+        <input type="checkbox" id="consentAccepted" />
+        <label for="consentAccepted">
+          ข้าพเจ้ายินยอมให้คลินิกจัดเก็บและใช้ข้อมูลสุขภาพเพื่อการดูแลรักษา การติดตามอาการ และการนัดหมาย
+        </label>
+      </div>
 
-      <label for="phone">เบอร์โทรศัพท์</label>
-      <input type="text" id="phone" name="phone" placeholder="เช่น 0812345678" />
+      <div class="small-note">
+        หากไม่ยินยอม คุณสามารถกด “ไม่ยินยอม” ได้ ระบบจะไม่แสดงแบบฟอร์มบันทึกข้อมูลสุขภาพ
+      </div>
 
-      <label for="weight">น้ำหนัก (กก.)</label>
-      <input type="number" id="weight" name="weight" step="0.1" placeholder="เช่น 62.5" />
+      <div class="row" style="margin-top: 14px;">
+        <button type="button" id="acceptConsentBtn">ยินยอมและกรอกข้อมูลต่อ</button>
+        <button type="button" id="declineConsentBtn" class="secondary">ไม่ยินยอม</button>
+      </div>
+    </div>
 
-      <label for="systolic">ความดันตัวบน (SYS)</label>
-      <input type="number" id="systolic" name="systolic" placeholder="เช่น 128" />
+    <div id="declineBox" class="msg success hidden"></div>
 
-      <label for="diastolic">ความดันตัวล่าง (DIA)</label>
-      <input type="number" id="diastolic" name="diastolic" placeholder="เช่น 78" />
+    <!-- ฟอร์มหลัก -->
+    <form id="patientForm" class="hidden">
+      <div class="section-box">
+        <h2>ข้อมูลผู้ป่วย</h2>
 
-      <label for="migrainePain">ระดับปวดไมเกรน</label>
-      <select id="migrainePain" name="migrainePain">
-        <option value="">-- เลือก --</option>
-        <option value="1">1 ปวดน้อย</option>
-        <option value="2">2 ปวดปานกลาง</option>
-        <option value="3">3 ปวดมากจนต้องหยุดพัก</option>
-      </select>
+        <label for="fullName">ชื่อ-สกุล</label>
+        <input type="text" id="fullName" name="fullName" placeholder="เช่น สมชาย ใจดี" required />
 
-      <label for="symptoms">อาการวันนี้</label>
-      <textarea id="symptoms" name="symptoms" placeholder="เช่น ปวดศีรษะ เวียนศีรษะ นอนไม่หลับ"></textarea>
+        <div class="row">
+          <div>
+            <label for="hn">HN</label>
+            <input type="text" id="hn" name="hn" placeholder="เช่น 123456" />
+          </div>
+          <div>
+            <label for="phone">เบอร์โทรศัพท์</label>
+            <input type="text" id="phone" name="phone" placeholder="เช่น 0812345678" />
+          </div>
+        </div>
+      </div>
+
+      <div class="section-box">
+        <h2>ข้อมูลร่างกายและอาการ</h2>
+
+        <div class="row">
+          <div>
+            <label for="weight">น้ำหนัก (กก.)</label>
+            <input type="number" id="weight" name="weight" step="0.1" placeholder="เช่น 62.5" />
+          </div>
+          <div>
+            <label for="heightCm">ส่วนสูง (ซม.)</label>
+            <input type="number" id="heightCm" name="heightCm" step="0.1" placeholder="เช่น 165" />
+          </div>
+        </div>
+
+        <div class="small-note">
+          BMI จะคำนวณใน Google Sheet จากน้ำหนักและส่วนสูง
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="systolic">ความดันตัวบน (SYS)</label>
+            <input type="number" id="systolic" name="systolic" placeholder="เช่น 128" />
+          </div>
+          <div>
+            <label for="diastolic">ความดันตัวล่าง (DIA)</label>
+            <input type="number" id="diastolic" name="diastolic" placeholder="เช่น 78" />
+          </div>
+        </div>
+
+        <label for="migrainePain">ระดับปวดไมเกรน</label>
+        <select id="migrainePain" name="migrainePain">
+          <option value="">-- เลือก --</option>
+          <option value="1">1 ปวดน้อย</option>
+          <option value="2">2 ปวดปานกลาง</option>
+          <option value="3">3 ปวดมากจนต้องหยุดพัก</option>
+        </select>
+
+        <label for="symptoms">อาการวันนี้</label>
+        <textarea id="symptoms" name="symptoms" placeholder="เช่น ปวดศีรษะ เวียนศีรษะ นอนไม่หลับ"></textarea>
+      </div>
+
+      <div class="section-box">
+        <h2>วันนัดครั้งถัดไป</h2>
+
+        <label for="nextAppointmentDate">วันนัด</label>
+        <input type="date" id="nextAppointmentDate" name="nextAppointmentDate" />
+
+        <label for="nextAppointmentTime">เวลานัด</label>
+        <input type="time" id="nextAppointmentTime" name="nextAppointmentTime" />
+
+        <label for="appointmentNote">หมายเหตุวันนัด</label>
+        <textarea id="appointmentNote" name="appointmentNote" placeholder="เช่น นัดตรวจติดตามผลเลือด / นัดปรับยา / นัดทำหัตถการ"></textarea>
+
+        <div class="checkbox-inline">
+          <input type="checkbox" id="reminderOptIn" />
+          <label for="reminderOptIn">
+            ต้องการให้คลินิกเตือนวันนัดผ่าน LINE OA ในอนาคต
+          </label>
+        </div>
+
+        <div class="small-note">
+          ส่วนการส่งข้อความเตือนอัตโนมัติผ่าน LINE OA จะเป็นขั้นถัดไปของระบบ
+        </div>
+      </div>
+
+      <div class="section-box">
+        <h2>ผลเจาะเลือด / ผลตรวจที่เกี่ยวข้อง</h2>
+
+        <div class="small-note">
+          ส่วนนี้เจ้าหน้าที่หรือแพทย์สามารถกรอกได้ หากผู้ป่วยไม่ได้กรอกเองก็เว้นว่างได้
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="fbs">FBS / Glucose</label>
+            <input type="text" id="fbs" name="fbs" placeholder="เช่น 98 mg/dL" />
+          </div>
+          <div>
+            <label for="hba1c">HbA1c</label>
+            <input type="text" id="hba1c" name="hba1c" placeholder="เช่น 5.8%" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="cholesterol">Cholesterol</label>
+            <input type="text" id="cholesterol" name="cholesterol" placeholder="เช่น 190" />
+          </div>
+          <div>
+            <label for="triglyceride">Triglyceride</label>
+            <input type="text" id="triglyceride" name="triglyceride" placeholder="เช่น 150" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="hdl">HDL</label>
+            <input type="text" id="hdl" name="hdl" placeholder="เช่น 48" />
+          </div>
+          <div>
+            <label for="ldl">LDL</label>
+            <input type="text" id="ldl" name="ldl" placeholder="เช่น 110" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="bun">BUN / Urea</label>
+            <input type="text" id="bun" name="bun" placeholder="เช่น 14" />
+          </div>
+          <div>
+            <label for="creatinine">Creatinine</label>
+            <input type="text" id="creatinine" name="creatinine" placeholder="เช่น 0.9" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="ast">AST</label>
+            <input type="text" id="ast" name="ast" placeholder="เช่น 22" />
+          </div>
+          <div>
+            <label for="alt">ALT</label>
+            <input type="text" id="alt" name="alt" placeholder="เช่น 25" />
+          </div>
+        </div>
+
+        <label for="bloodTestNote">สรุปผลตรวจ / หมายเหตุผลเจาะเลือด</label>
+        <textarea id="bloodTestNote" name="bloodTestNote" placeholder="เช่น ไขมันสูงเล็กน้อย / น้ำตาลปกติ / ควรติดตามไต"></textarea>
+      </div>
 
       <button type="submit" id="submitBtn">ส่งข้อมูล</button>
     </form>
@@ -158,10 +372,11 @@
     // เติม 2 จุดนี้
     // =========================
     const LIFF_ID = "2009751378-L6xJN3QE";
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxnjxbgRS0Plfag2u3ijXeMFPYhXnYWuAZYe34XrlsvGA0Y_mzAKMURG_jRXoOXbtsQ/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFCu3EqpP-lDTFx8CWDPPHjabCq3u7GUr2fFKk1dcKsJllmzzu_G8r5cCc1vmNMneH/exec";
     // =========================
 
     let lineProfile = null;
+    let consentGiven = false;
 
     function showSuccess(message) {
       const el = document.getElementById("successMsg");
@@ -201,9 +416,33 @@
       } catch (err) {
         console.error("LIFF init error:", err);
         document.getElementById("profileBox").innerHTML =
-          "เชื่อมต่อ LINE ไม่สำเร็จ แต่ยังกรอกฟอร์มได้";
+          "เชื่อมต่อ LINE ไม่สำเร็จ แต่ยังใช้งานฟอร์มได้";
       }
     }
+
+    document.getElementById("acceptConsentBtn").addEventListener("click", function () {
+      const checked = document.getElementById("consentAccepted").checked;
+
+      if (!checked) {
+        showError("กรุณาติ๊กยินยอมก่อน จึงจะเข้าสู่แบบฟอร์มได้");
+        return;
+      }
+
+      consentGiven = true;
+      document.getElementById("patientForm").classList.remove("hidden");
+      document.getElementById("consentSection").classList.add("hidden");
+      document.getElementById("declineBox").classList.add("hidden");
+      document.getElementById("errorMsg").style.display = "none";
+    });
+
+    document.getElementById("declineConsentBtn").addEventListener("click", function () {
+      consentGiven = false;
+      document.getElementById("patientForm").classList.add("hidden");
+      document.getElementById("declineBox").classList.remove("hidden");
+      document.getElementById("declineBox").textContent =
+        "คุณเลือกไม่ยินยอม จึงยังไม่แสดงแบบฟอร์มบันทึกสุขภาพ หากเปลี่ยนใจสามารถกลับมาให้ความยินยอมได้ภายหลัง";
+      document.getElementById("errorMsg").style.display = "none";
+    });
 
     document.getElementById("patientForm").addEventListener("submit", async function (e) {
       e.preventDefault();
@@ -214,16 +453,37 @@
 
       const payload = {
         timestamp: new Date().toISOString(),
+        consentStatus: consentGiven ? "accepted" : "declined",
         lineUserId: lineProfile ? lineProfile.userId : "",
         lineDisplayName: lineProfile ? lineProfile.displayName : "",
+
         fullName: document.getElementById("fullName").value.trim(),
         hn: document.getElementById("hn").value.trim(),
         phone: document.getElementById("phone").value.trim(),
+
         weight: document.getElementById("weight").value.trim(),
+        heightCm: document.getElementById("heightCm").value.trim(),
         systolic: document.getElementById("systolic").value.trim(),
         diastolic: document.getElementById("diastolic").value.trim(),
         migrainePain: document.getElementById("migrainePain").value,
-        symptoms: document.getElementById("symptoms").value.trim()
+        symptoms: document.getElementById("symptoms").value.trim(),
+
+        nextAppointmentDate: document.getElementById("nextAppointmentDate").value,
+        nextAppointmentTime: document.getElementById("nextAppointmentTime").value,
+        appointmentNote: document.getElementById("appointmentNote").value.trim(),
+        reminderOptIn: document.getElementById("reminderOptIn").checked ? "yes" : "no",
+
+        fbs: document.getElementById("fbs").value.trim(),
+        hba1c: document.getElementById("hba1c").value.trim(),
+        cholesterol: document.getElementById("cholesterol").value.trim(),
+        triglyceride: document.getElementById("triglyceride").value.trim(),
+        hdl: document.getElementById("hdl").value.trim(),
+        ldl: document.getElementById("ldl").value.trim(),
+        bun: document.getElementById("bun").value.trim(),
+        creatinine: document.getElementById("creatinine").value.trim(),
+        ast: document.getElementById("ast").value.trim(),
+        alt: document.getElementById("alt").value.trim(),
+        bloodTestNote: document.getElementById("bloodTestNote").value.trim()
       };
 
       try {
