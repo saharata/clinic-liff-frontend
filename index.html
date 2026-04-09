@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>แบบฟอร์มติดตามอาการ</title>
 
-  <!-- LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
@@ -44,6 +43,7 @@
       padding: 12px;
       margin-bottom: 18px;
       font-size: 14px;
+      word-break: break-word;
     }
 
     label {
@@ -154,12 +154,28 @@
   </div>
 
   <script>
-    // ====== แก้ 2 ค่านี้ ======
-    const LIFF_ID = "2009751378-L6xJN3QE";
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGsZVpRV2AZM0b8UUj_xRCB2qyuCaVm6GFEycSbWBbPEtDi48Y8TL5xZ6Z4QLx5-zh/exec";
-    // ==========================
+    // =========================
+    // เติม 2 จุดนี้
+    // =========================
+    const LIFF_ID = "ใส่_LIFF_ID_ตรงนี้";
+    const APPS_SCRIPT_URL = "ใส่_APPS_SCRIPT_URL_ตรงนี้";
+    // =========================
 
     let lineProfile = null;
+
+    function showSuccess(message) {
+      const el = document.getElementById("successMsg");
+      el.style.display = "block";
+      el.textContent = message;
+      document.getElementById("errorMsg").style.display = "none";
+    }
+
+    function showError(message) {
+      const el = document.getElementById("errorMsg");
+      el.style.display = "block";
+      el.textContent = message;
+      document.getElementById("successMsg").style.display = "none";
+    }
 
     async function initLiff() {
       try {
@@ -178,33 +194,18 @@
           userId: ${lineProfile.userId}
         `;
 
-        // เติมชื่อให้อัตโนมัติถ้าช่องยังว่าง
         const fullNameInput = document.getElementById("fullName");
         if (!fullNameInput.value && lineProfile.displayName) {
           fullNameInput.value = lineProfile.displayName;
         }
       } catch (err) {
+        console.error("LIFF init error:", err);
         document.getElementById("profileBox").innerHTML =
           "เชื่อมต่อ LINE ไม่สำเร็จ แต่ยังกรอกฟอร์มได้";
-        console.error("LIFF init error:", err);
       }
     }
 
-    function showSuccess(message) {
-      const el = document.getElementById("successMsg");
-      el.style.display = "block";
-      el.textContent = message;
-      document.getElementById("errorMsg").style.display = "none";
-    }
-
-    function showError(message) {
-      const el = document.getElementById("errorMsg");
-      el.style.display = "block";
-      el.textContent = message;
-      document.getElementById("successMsg").style.display = "none";
-    }
-
-    document.getElementById("patientForm").addEventListener("submit", async (e) => {
+    document.getElementById("patientForm").addEventListener("submit", async function (e) {
       e.preventDefault();
 
       const submitBtn = document.getElementById("submitBtn");
@@ -213,8 +214,8 @@
 
       const payload = {
         timestamp: new Date().toISOString(),
-        lineUserId: lineProfile?.userId || "",
-        lineDisplayName: lineProfile?.displayName || "",
+        lineUserId: lineProfile ? lineProfile.userId : "",
+        lineDisplayName: lineProfile ? lineProfile.displayName : "",
         fullName: document.getElementById("fullName").value.trim(),
         hn: document.getElementById("hn").value.trim(),
         phone: document.getElementById("phone").value.trim(),
@@ -226,37 +227,25 @@
       };
 
       try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(data),
-  mode: "no-cors"
-});
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(payload),
+          mode: "no-cors"
+        });
 
-        const text = await response.text();
+        showSuccess("ส่งข้อมูลเรียบร้อยแล้ว กรุณาตรวจสอบใน Google Sheet");
 
-        let result = {};
-        try {
-          result = JSON.parse(text);
-        } catch (_) {
-          result = { ok: false, raw: text };
-        }
+        document.getElementById("patientForm").reset();
 
-        if (result.ok) {
-          showSuccess("ส่งข้อมูลสำเร็จแล้ว");
-          document.getElementById("patientForm").reset();
-
-          if (lineProfile?.displayName) {
-            document.getElementById("fullName").value = lineProfile.displayName;
-          }
-        } else {
-          showError("ส่งข้อมูลไม่สำเร็จ: " + (result.error || "ไม่ทราบสาเหตุ"));
+        if (lineProfile && lineProfile.displayName) {
+          document.getElementById("fullName").value = lineProfile.displayName;
         }
       } catch (error) {
-        console.error(error);
-        showError("เชื่อมต่อระบบไม่สำเร็จ กรุณาตรวจสอบ Apps Script URL");
+        console.error("submit error:", error);
+        showError("ส่งข้อมูลไม่สำเร็จ กรุณาตรวจสอบ Apps Script URL หรือการ Deploy");
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = "ส่งข้อมูล";
