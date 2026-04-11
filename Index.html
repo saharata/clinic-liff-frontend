@@ -167,6 +167,21 @@
       margin-top: 6px;
     }
 
+    .status-ok {
+      color: #0b7a39;
+      font-weight: bold;
+    }
+
+    .status-warn {
+      color: #b45309;
+      font-weight: bold;
+    }
+
+    .status-bad {
+      color: #b42318;
+      font-weight: bold;
+    }
+
     @media (max-width: 640px) {
       .row {
         grid-template-columns: 1fr;
@@ -183,7 +198,6 @@
       กำลังเชื่อมต่อ LINE...
     </div>
 
-    <!-- หน้า/ส่วนยินยอม -->
     <div id="consentSection" class="consent-box">
       <h2>การยินยอมเก็บข้อมูลสุขภาพ</h2>
       <div>
@@ -209,7 +223,6 @@
 
     <div id="declineBox" class="msg success hidden"></div>
 
-    <!-- ฟอร์มหลัก -->
     <form id="patientForm" class="hidden">
       <div class="section-box">
         <h2>ข้อมูลผู้ป่วย</h2>
@@ -368,12 +381,8 @@
   </div>
 
   <script>
-    // =========================
-    // เติม 2 จุดนี้
-    // =========================
     const LIFF_ID = "2009751378-L6xJN3QE";
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFCu3EqpP-lDTFx8CWDPPHjabCq3u7GUr2fFKk1dcKsJllmzzu_G8r5cCc1vmNMneH/exec";
-    // =========================
 
     let lineProfile = null;
     let consentGiven = false;
@@ -392,31 +401,107 @@
       document.getElementById("successMsg").style.display = "none";
     }
 
+    function setProfileStatus(html) {
+      document.getElementById("profileBox").innerHTML = html;
+    }
+
+    function timeoutPromise(ms, label) {
+      return new Promise((_, reject) => {
+        setTimeout(() => reject(new Error(label + " ใช้เวลานานเกินไป")), ms);
+      });
+    }
+
+    async function withTimeout(promise, ms, label) {
+      return Promise.race([promise, timeoutPromise(ms, label)]);
+    }
+
+    function getUserIdFallback(profileObj) {
+      try {
+        const context = liff.getContext ? liff.getContext() : null;
+        if (context && context.userId) return context.userId;
+      } catch (_) {}
+
+      try {
+        if (profileObj && profileObj.userId) return profileObj.userId;
+      } catch (_) {}
+
+      try {
+        const idToken = liff.getDecodedIDToken ? liff.getDecodedIDToken() : null;
+        if (idToken && idToken.sub) return idToken.sub;
+      } catch (_) {}
+
+      return "";
+    }
+
     async function initLiff() {
       try {
-        await liff.init({ liffId: LIFF_ID });
+        setProfileStatus("1/5 กำลัง init LIFF...");
+
+        await withTimeout(
+          liff.init({ liffId: LIFF_ID }),
+          12000,
+          "LIFF init"
+        );
+
+        setProfileStatus("2/5 init สำเร็จ กำลังตรวจสอบการ login...");
 
         if (!liff.isLoggedIn()) {
-          liff.login();
+          setProfileStatus("ยังไม่ได้ login กำลังพาไป login LINE...");
+          liff.login({ redirectUri: window.location.href });
           return;
         }
 
-        lineProfile = await liff.getProfile();
+        setProfileStatus("3/5 login แล้ว กำลังอ่านข้อมูล LINE...");
 
-        document.getElementById("profileBox").innerHTML = `
-          <strong>เชื่อมต่อสำเร็จ</strong><br>
-          ชื่อ LINE: ${lineProfile.displayName}<br>
-          userId: ${lineProfile.userId}
-        `;
+        let profile = null;
+        try {
+          profile = await withTimeout(
+            liff.getProfile(),
+            10000,
+            "อ่าน LINE profile"
+          );
+        } catch (profileErr) {
+          console.warn("getProfile failed:", profileErr);
+        }
+
+        const userId = getUserIdFallback(profile);
+
+        lineProfile = {
+          displayName:
+            (profile && profile.displayName) ||
+            "LINE User",
+          userId: userId || ""
+        };
+
+        if (lineProfile.userId) {
+          setProfileStatus(`
+            <span class="status-ok">เชื่อมต่อ LINE สำเร็จ</span><br>
+            ชื่อ LINE: ${lineProfile.displayName}<br>
+            userId: ${lineProfile.userId}
+          `);
+        } else {
+          setProfileStatus(`
+            <span class="status-warn">เชื่อมต่อ LINE ได้บางส่วน</span><br>
+            ชื่อ LINE: ${lineProfile.displayName}<br>
+            <span class="status-bad">ยังไม่พบ LINE userId</span><br>
+            คุณยังกรอกฟอร์มได้ แต่ระบบจะยังไม่ผูกข้อมูลเข้ากับ LINE คนนี้
+          `);
+        }
 
         const fullNameInput = document.getElementById("fullName");
         if (!fullNameInput.value && lineProfile.displayName) {
           fullNameInput.value = lineProfile.displayName;
         }
+
       } catch (err) {
         console.error("LIFF init error:", err);
-        document.getElementById("profileBox").innerHTML =
-          "เชื่อมต่อ LINE ไม่สำเร็จ แต่ยังใช้งานฟอร์มได้";
+        setProfileStatus(`
+          <span class="status-bad">เชื่อมต่อ LINE ไม่สำเร็จ</span><br>
+          ${err.message || String(err)}<br>
+          <span class="small-note">
+            คุณยังใช้งานฟอร์มได้ แต่ข้อมูลจะไม่ถูกผูกกับ LINE จนกว่าจะเชื่อมต่อสำเร็จ
+          </span>
+        `);
       }
     }
 
@@ -454,8 +539,9 @@
       const payload = {
         timestamp: new Date().toISOString(),
         consentStatus: consentGiven ? "accepted" : "declined",
-        lineUserId: lineProfile ? lineProfile.userId : "",
-        lineDisplayName: lineProfile ? lineProfile.displayName : "",
+
+        lineUserId: lineProfile && lineProfile.userId ? lineProfile.userId : "",
+        lineDisplayName: lineProfile && lineProfile.displayName ? lineProfile.displayName : "",
 
         fullName: document.getElementById("fullName").value.trim(),
         hn: document.getElementById("hn").value.trim(),
@@ -496,7 +582,12 @@
           mode: "no-cors"
         });
 
-        showSuccess("ส่งข้อมูลเรียบร้อยแล้ว กรุณาตรวจสอบใน Google Sheet");
+        let msg = "ส่งข้อมูลเรียบร้อยแล้ว กรุณาตรวจสอบใน Google Sheet";
+        if (!payload.lineUserId) {
+          msg += " (รอบนี้ยังไม่พบ LINE userId จึงยังไม่ผูกข้อมูลเข้ากับ LINE)";
+        }
+
+        showSuccess(msg);
 
         document.getElementById("patientForm").reset();
 
