@@ -17,7 +17,7 @@
     }
 
     .container {
-      max-width: 680px;
+      max-width: 760px;
       margin: 24px auto;
       background: #fff;
       border-radius: 16px;
@@ -66,14 +66,19 @@
       font-weight: bold;
     }
 
-    input, select, textarea, button {
+    input,
+    select,
+    textarea,
+    button {
       width: 100%;
       box-sizing: border-box;
       font-size: 16px;
       border-radius: 10px;
     }
 
-    input, select, textarea {
+    input,
+    select,
+    textarea {
       border: 1px solid #ccc;
       padding: 12px;
       background: #fff;
@@ -90,32 +95,17 @@
       gap: 12px;
     }
 
-    .radio-group {
-      display: flex;
-      gap: 18px;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-
-    .radio-group label {
-      font-weight: normal;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .radio-group input[type="radio"],
-    .checkbox-inline input[type="checkbox"] {
-      width: auto;
-    }
-
     .checkbox-inline {
       display: flex;
       align-items: flex-start;
       gap: 10px;
       margin-top: 12px;
       font-size: 14px;
+    }
+
+    .checkbox-inline input[type="checkbox"] {
+      width: auto;
+      margin-top: 3px;
     }
 
     button {
@@ -171,23 +161,27 @@
       .row {
         grid-template-columns: 1fr;
       }
+
+      .container {
+        margin: 12px;
+        padding: 16px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>แบบฟอร์มสุขภาพและวันนัด</h1>
-    <div class="sub">สำหรับติดตามอาการ ข้อมูลสุขภาพ วันนัด และผลตรวจเบื้องต้น</div>
+    <div class="sub">สำหรับติดตามอาการ ข้อมูลสุขภาพ วันนัด และผลตรวจที่เกี่ยวข้อง</div>
 
     <div class="profile-box" id="profileBox">
       กำลังเชื่อมต่อ LINE...
     </div>
 
-    <!-- หน้า/ส่วนยินยอม -->
     <div id="consentSection" class="consent-box">
       <h2>การยินยอมเก็บข้อมูลสุขภาพ</h2>
       <div>
-        คลินิกจะใช้ข้อมูลนี้เพื่อประเมินอาการ ติดตามผลการรักษา นัดหมาย และการดูแลต่อเนื่องผ่านระบบของคลินิก
+        คลินิกจะใช้ข้อมูลนี้เพื่อการดูแลรักษา ติดตามอาการ นัดหมาย และดูแลต่อเนื่องผ่านระบบของคลินิก
       </div>
 
       <div class="checkbox-inline">
@@ -198,7 +192,7 @@
       </div>
 
       <div class="small-note">
-        หากไม่ยินยอม คุณสามารถกด “ไม่ยินยอม” ได้ ระบบจะไม่แสดงแบบฟอร์มบันทึกข้อมูลสุขภาพ
+        หากไม่ยินยอม ระบบจะไม่แสดงแบบฟอร์มบันทึกข้อมูลสุขภาพ
       </div>
 
       <div class="row" style="margin-top: 14px;">
@@ -209,26 +203,7 @@
 
     <div id="declineBox" class="msg success hidden"></div>
 
-    <!-- ฟอร์มหลัก -->
     <form id="patientForm" class="hidden">
-      <div class="section-box">
-        <h2>ข้อมูลผู้ป่วย</h2>
-
-        <label for="fullName">ชื่อ-สกุล</label>
-        <input type="text" id="fullName" name="fullName" placeholder="เช่น สมชาย ใจดี" required />
-
-        <div class="row">
-          <div>
-            <label for="hn">HN</label>
-            <input type="text" id="hn" name="hn" placeholder="เช่น 123456" />
-          </div>
-          <div>
-            <label for="phone">เบอร์โทรศัพท์</label>
-            <input type="text" id="phone" name="phone" placeholder="เช่น 0812345678" />
-          </div>
-        </div>
-      </div>
-
       <div class="section-box">
         <h2>ข้อมูลร่างกายและอาการ</h2>
 
@@ -244,7 +219,7 @@
         </div>
 
         <div class="small-note">
-          BMI จะคำนวณใน Google Sheet จากน้ำหนักและส่วนสูง
+          BMI จะถูกคำนวณอัตโนมัติจากน้ำหนักและส่วนสูงในระบบ
         </div>
 
         <div class="row">
@@ -280,17 +255,21 @@
         <input type="time" id="nextAppointmentTime" name="nextAppointmentTime" />
 
         <label for="appointmentNote">หมายเหตุวันนัด</label>
-        <textarea id="appointmentNote" name="appointmentNote" placeholder="เช่น นัดตรวจติดตามผลเลือด / นัดปรับยา / นัดทำหัตถการ"></textarea>
+        <textarea
+          id="appointmentNote"
+          name="appointmentNote"
+          placeholder="เช่น นัดตรวจติดตามผลเลือด / นัดปรับยา / นัดทำหัตถการ"
+        ></textarea>
 
         <div class="checkbox-inline">
           <input type="checkbox" id="reminderOptIn" />
           <label for="reminderOptIn">
-            ต้องการให้คลินิกเตือนวันนัดผ่าน LINE OA ในอนาคต
+            ต้องการให้คลินิกเตือนวันนัดผ่าน LINE OA
           </label>
         </div>
 
         <div class="small-note">
-          ส่วนการส่งข้อความเตือนอัตโนมัติผ่าน LINE OA จะเป็นขั้นถัดไปของระบบ
+          หากติ๊กเลือก ระบบจะใช้ข้อมูลนี้สำหรับการแจ้งเตือนวันนัดในอนาคต
         </div>
       </div>
 
@@ -298,17 +277,17 @@
         <h2>ผลเจาะเลือด / ผลตรวจที่เกี่ยวข้อง</h2>
 
         <div class="small-note">
-          ส่วนนี้เจ้าหน้าที่หรือแพทย์สามารถกรอกได้ หากผู้ป่วยไม่ได้กรอกเองก็เว้นว่างได้
+          ส่วนนี้สามารถกรอกโดยผู้ป่วย เจ้าหน้าที่ หรือแพทย์ได้ หากยังไม่มีข้อมูลสามารถเว้นว่างไว้ได้
         </div>
 
         <div class="row">
           <div>
             <label for="fbs">FBS / Glucose</label>
-            <input type="text" id="fbs" name="fbs" placeholder="เช่น 98 mg/dL" />
+            <input type="text" id="fbs" name="fbs" placeholder="เช่น 98" />
           </div>
           <div>
             <label for="hba1c">HbA1c</label>
-            <input type="text" id="hba1c" name="hba1c" placeholder="เช่น 5.8%" />
+            <input type="text" id="hba1c" name="hba1c" placeholder="เช่น 5.8" />
           </div>
         </div>
 
@@ -347,6 +326,28 @@
 
         <div class="row">
           <div>
+            <label for="uric">Uric Acid</label>
+            <input type="text" id="uric" name="uric" placeholder="เช่น 6.5" />
+          </div>
+          <div>
+            <label for="hct">Hematocrit (Hct)</label>
+            <input type="text" id="hct" name="hct" placeholder="เช่น 42" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="hb">Hemoglobin (Hb)</label>
+            <input type="text" id="hb" name="hb" placeholder="เช่น 13.5" />
+          </div>
+          <div>
+            <label for="wbc">WBC</label>
+            <input type="text" id="wbc" name="wbc" placeholder="เช่น 7000" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
             <label for="ast">AST</label>
             <input type="text" id="ast" name="ast" placeholder="เช่น 22" />
           </div>
@@ -357,7 +358,11 @@
         </div>
 
         <label for="bloodTestNote">สรุปผลตรวจ / หมายเหตุผลเจาะเลือด</label>
-        <textarea id="bloodTestNote" name="bloodTestNote" placeholder="เช่น ไขมันสูงเล็กน้อย / น้ำตาลปกติ / ควรติดตามไต"></textarea>
+        <textarea
+          id="bloodTestNote"
+          name="bloodTestNote"
+          placeholder="เช่น ไขมันสูงเล็กน้อย / น้ำตาลปกติ / ควรติดตามไต"
+        ></textarea>
       </div>
 
       <button type="submit" id="submitBtn">ส่งข้อมูล</button>
@@ -368,12 +373,8 @@
   </div>
 
   <script>
-    // =========================
-    // เติม 2 จุดนี้
-    // =========================
     const LIFF_ID = "2009751378-L6xJN3QE";
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFCu3EqpP-lDTFx8CWDPPHjabCq3u7GUr2fFKk1dcKsJllmzzu_G8r5cCc1vmNMneH/exec";
-    // =========================
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWbFjzdxU9TJugFQuQUW3SLU2_mm_B3WOnju6jcbpEREtJydSu0cu8Pki7NxL3gaJg/exec";
 
     let lineProfile = null;
     let consentGiven = false;
@@ -392,6 +393,15 @@
       document.getElementById("successMsg").style.display = "none";
     }
 
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
     async function initLiff() {
       try {
         await liff.init({ liffId: LIFF_ID });
@@ -405,18 +415,13 @@
 
         document.getElementById("profileBox").innerHTML = `
           <strong>เชื่อมต่อสำเร็จ</strong><br>
-          ชื่อ LINE: ${lineProfile.displayName}<br>
-          userId: ${lineProfile.userId}
+          ชื่อ LINE: ${escapeHtml(lineProfile.displayName)}<br>
+          userId: ${escapeHtml(lineProfile.userId)}
         `;
-
-        const fullNameInput = document.getElementById("fullName");
-        if (!fullNameInput.value && lineProfile.displayName) {
-          fullNameInput.value = lineProfile.displayName;
-        }
       } catch (err) {
         console.error("LIFF init error:", err);
         document.getElementById("profileBox").innerHTML =
-          "เชื่อมต่อ LINE ไม่สำเร็จ แต่ยังใช้งานฟอร์มได้";
+          "เชื่อมต่อ LINE ไม่สำเร็จ แต่ยังสามารถกรอกฟอร์มได้";
       }
     }
 
@@ -440,12 +445,17 @@
       document.getElementById("patientForm").classList.add("hidden");
       document.getElementById("declineBox").classList.remove("hidden");
       document.getElementById("declineBox").textContent =
-        "คุณเลือกไม่ยินยอม จึงยังไม่แสดงแบบฟอร์มบันทึกสุขภาพ หากเปลี่ยนใจสามารถกลับมาให้ความยินยอมได้ภายหลัง";
+        "คุณเลือกไม่ยินยอม ระบบจึงยังไม่แสดงแบบฟอร์มบันทึกสุขภาพ หากเปลี่ยนใจสามารถกลับมาให้ความยินยอมได้ภายหลัง";
       document.getElementById("errorMsg").style.display = "none";
     });
 
     document.getElementById("patientForm").addEventListener("submit", async function (e) {
       e.preventDefault();
+
+      if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === "PUT_YOUR_APPS_SCRIPT_EXEC_URL_HERE") {
+        showError("กรุณาใส่ APPS_SCRIPT_URL ให้ถูกต้องก่อนใช้งาน");
+        return;
+      }
 
       const submitBtn = document.getElementById("submitBtn");
       submitBtn.disabled = true;
@@ -457,9 +467,9 @@
         lineUserId: lineProfile ? lineProfile.userId : "",
         lineDisplayName: lineProfile ? lineProfile.displayName : "",
 
-        fullName: document.getElementById("fullName").value.trim(),
-        hn: document.getElementById("hn").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
+        fullName: lineProfile ? lineProfile.displayName : "",
+        hn: "",
+        phone: "",
 
         weight: document.getElementById("weight").value.trim(),
         heightCm: document.getElementById("heightCm").value.trim(),
@@ -471,7 +481,10 @@
         nextAppointmentDate: document.getElementById("nextAppointmentDate").value,
         nextAppointmentTime: document.getElementById("nextAppointmentTime").value,
         appointmentNote: document.getElementById("appointmentNote").value.trim(),
+
         reminderOptIn: document.getElementById("reminderOptIn").checked ? "yes" : "no",
+        reminderSentAt: "",
+        reminderStatus: "",
 
         fbs: document.getElementById("fbs").value.trim(),
         hba1c: document.getElementById("hba1c").value.trim(),
@@ -481,6 +494,10 @@
         ldl: document.getElementById("ldl").value.trim(),
         bun: document.getElementById("bun").value.trim(),
         creatinine: document.getElementById("creatinine").value.trim(),
+        uric: document.getElementById("uric").value.trim(),
+        hct: document.getElementById("hct").value.trim(),
+        hb: document.getElementById("hb").value.trim(),
+        wbc: document.getElementById("wbc").value.trim(),
         ast: document.getElementById("ast").value.trim(),
         alt: document.getElementById("alt").value.trim(),
         bloodTestNote: document.getElementById("bloodTestNote").value.trim()
@@ -497,12 +514,7 @@
         });
 
         showSuccess("ส่งข้อมูลเรียบร้อยแล้ว กรุณาตรวจสอบใน Google Sheet");
-
         document.getElementById("patientForm").reset();
-
-        if (lineProfile && lineProfile.displayName) {
-          document.getElementById("fullName").value = lineProfile.displayName;
-        }
       } catch (error) {
         console.error("submit error:", error);
         showError("ส่งข้อมูลไม่สำเร็จ กรุณาตรวจสอบ Apps Script URL หรือการ Deploy");
